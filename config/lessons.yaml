@@ -1,0 +1,72 @@
+updated_at: "2026-05-16"
+task: FYDM-P9
+source_map:
+  primary_rules: "knowledge-library/sources/worldquant-brain-official/official-rules-for-factor-factory.md"
+  official_courses_index: "knowledge-library/sources/worldquant-brain-official/course-index.md"
+  official_docs_index: "knowledge-library/sources/worldquant-brain-official/markdown/tutorial-pages/README.md"
+
+stages:
+  stage_1:
+    title: 一阶段
+    explanation: "一阶段先验证基础信号是否有统计味道，重点是找到能解释、能回测的 base signal，而不是一次到位。"
+  stage_2:
+    title: 二阶段
+    explanation: "二阶段在一阶段信号上加入分组比较或中性化，让信号在行业/分组内更可比，减少粗糙暴露。"
+  stage_3:
+    title: 三阶段
+    explanation: "三阶段加入事件或执行条件，只在更合适的时机暴露信号，目的是降低噪音和无效交易。"
+
+operator_families:
+  time_series_rank:
+    explanation: "时间序列排名把一个字段放回历史窗口里比较，适合表达“当前水平在自己历史中高还是低”。"
+  group_rank:
+    explanation: "分组排名把股票放回自己的行业或分组里比较，更像在问“它在同类里排第几”。"
+  trade_when_gate:
+    explanation: "trade_when 先判断条件再决定是否持有信号，适合把高噪音信号变得更可执行。"
+  volatility_reversal:
+    explanation: "波动或标准差类模板常用于捕捉“过热之后回归”的想法，但也容易把噪音误当信号。"
+  financial_ratio:
+    explanation: "比率类模板适合表达结构关系，例如杠杆、盈利能力或资产质量，而不是只看绝对值。"
+
+signal_families:
+  fundamental_signal:
+    explanation: "基本面字段通常变化慢，适合低频、解释性强的 Alpha 假设。"
+  analyst_signal:
+    explanation: "分析师字段更像预期信息，常用来做盈利预期、修正或收益率相关假设。"
+  sentiment_signal:
+    explanation: "情绪字段反映市场讨论热度和方向，通常更噪音，也更适合配合过滤条件一起使用。"
+  negative_signal:
+    explanation: "负号并不代表坏公式，只是说明你押注的是“越高越差”或“越极端越回归”。"
+
+metrics:
+  sharpe:
+    explanation: "Sharpe 更关心单位波动换来了多少收益，所以它常常比纯收益率更重要。"
+  fitness:
+    explanation: "Fitness 是收益、换手和 Sharpe 的综合函数，适合做 WorldQuant 的第一层筛选。"
+  turnover:
+    explanation: "换手率过高常常意味着成本更高、稳定性更差；过低又可能说明信号太钝。"
+  self_correlation:
+    explanation: "自相关不是看公式长得像不像，而是看它和你已有 Alpha 的表现是不是太像。"
+  subuniverse:
+    explanation: "子宇宙测试检查信号是不是只在不太可交易的那部分股票上看起来有效。"
+
+empirical_lessons:
+  calm_market_gate_good_but_unstable:
+    case_id: public-case-calm-market-gate-good-unstable
+    source_candidate_policy: "Do not publish historical candidate IDs in the portable release; use case_id for teaching."
+    alpha_id_policy: "Do not publish account-specific Alpha IDs in the portable release; use case_id for teaching."
+    summary: "平静市场 trade_when 门控拿到 GOOD、Sharpe 1.82、Fitness 1.64，但 Test Sharpe 只有 0.18，训练期和测试期落差大。"
+    keep: "保留“什么时候因子更应该生效”的三阶段事件门思路。"
+    avoid: "不要因为 Grade=GOOD 就围绕短期/中期波动窗口大规模扩参；它目前只能作为受限对照分支。"
+    generator_policy:
+      liquidity_gate: mainline
+      calm_market_gate: limited_contrast
+      ranked_exit: demoted
+    next_questions:
+      - "同一个 leverage ratio seed 下，流动性门控能否持续保持更高 Test Sharpe。"
+      - "calm market gate 是否需要换 seed、换退出条件或换中性化后才值得继续。"
+      - "UNITS warning 修复不能牺牲测试期稳定性。"
+
+teaching_prompts:
+  default:
+    prompt: "请解释这条候选为什么属于这个模板、为什么需要这些字段、下一步应该人工看什么。"

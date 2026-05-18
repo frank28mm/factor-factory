@@ -1,0 +1,27 @@
+updated_at: "2026-05-18"
+source: bundled_distribution_defaults
+
+simulation_defaults:
+  instrumentType: EQUITY
+  region: USA
+  universe: TOP3000
+  delay: 1
+  neutralization: SUBINDUSTRY
+  language: FASTEXPR
+  decay: 4
+  truncation: 0.08
+  pasteurization: ON
+  unitHandling: VERIFY
+  nanHandling: OFF
+  testPeriod: P1Y
+  visualization: false
+
+submission_gates:
+  delay_1:
+    sharpe_min: 1.25
+    fitness_min: 1.0
+  turnover_range:
+    min: 0.01
+    max: 0.70
+  self_correlation:
+    max: 0.70

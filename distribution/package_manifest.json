@@ -1,0 +1,63 @@
+{
+  "package_name": "factor-factory",
+  "version": "v16-watchdog-stable",
+  "purpose": "Clean, portable Factor Factory release without personal state, credentials, or account history.",
+  "include_files": [
+    "docs/factor-factory-public-case-studies.md",
+    "docs/factor-factory-distribution-runbook-2026-05-18.md",
+    "requirements.txt"
+  ],
+  "include_dirs": [
+    "config",
+    "connectors",
+    "distribution",
+    "examples",
+    "schemas",
+    "scripts",
+    "tests"
+  ],
+  "exclude_dirs": [
+    "state/",
+    "state.",
+    "launchd/",
+    "__pycache__/",
+    ".pytest_cache/",
+    ".mypy_cache/"
+  ],
+  "exclude_globs": [
+    ".DS_Store",
+    "*.pyc",
+    "*.pyo",
+    "*.log",
+    "*.tmp",
+    "state/**",
+    "state.*/**",
+    "launchd/**",
+    "**/__pycache__/**"
+  ],
+  "state_dirs": [
+    "state/audit",
+    "state/datafield-profile-probes",
+    "state/datafield-profiles",
+    "state/imports",
+    "state/ledger",
+    "state/local-archive",
+    "state/logs",
+    "state/probes",
+    "state/quarantine",
+    "state/queue",
+    "state/retro",
+    "state/reviews",
+    "state/screenshots",
+    "state/visual"
+  ],
+  "blocked_text_markers": [
+    "/Users/",
+    "workspace-hub",
+    "workspace-hub-data",
+    "launchd/com."
+  ],
+  "blocked_marker_allowlist": [
+    "distribution/package_manifest.json"
+  ]
+}

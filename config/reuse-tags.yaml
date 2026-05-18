@@ -1,0 +1,18 @@
+# Factor Factory 产物复用标签
+
+tags:
+  worldquant_submittable:
+    label: 可提交 WorldQuant
+    meaning: 产物适合按 WorldQuant BRAIN / Alpha 表达式路径提交或进一步验证。
+  numerai_adaptable:
+    label: 可改写成 Numerai 信号
+    meaning: 研究假设或特征工程思路可改写为 Numerai Signals / Tournament 形式，但不直接搬运平台专属数据或公式。
+  quantiacs_adaptable:
+    label: 可改写成 Quantiacs 策略
+    meaning: 研究假设可改写为 Quantiacs Python 策略、仓位逻辑或交易规则。
+  self_trading_research:
+    label: 可用于自营交易研究
+    meaning: 可作为自有策略研究材料，但仍需数据授权、交易成本、风控、样本外和 paper trading 验证。
+  exclusive_or_do_not_reuse:
+    label: 不可复用或需独占
+    meaning: 因平台条款、数据来源、相似度、客户独占或合规限制，不应跨平台重复提交或转售。

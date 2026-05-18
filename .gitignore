@@ -1,0 +1,17 @@
+# Runtime state and user account/session artifacts
+state/**
+!state/**/
+!state/**/.gitkeep
+state.*/
+launchd/
+
+# Python/cache/editor artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+*.log
+*.tmp
+.env
+.env.*

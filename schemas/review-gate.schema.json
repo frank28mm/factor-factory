@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/review-gate.schema.json",
+  "title": "Manual Review Gate",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "gate_level",
+    "decision",
+    "reason"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^cand-[a-z0-9-]+$"
+    },
+    "gate_level": {
+      "type": "string",
+      "enum": ["gate_0_local_only", "gate_1_read_only_contract_check", "gate_2_single_simulation_probe", "gate_3_submission_decision"]
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["approved", "blocked", "deferred"]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

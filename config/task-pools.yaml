@@ -1,0 +1,190 @@
+updated_at: "2026-05-16"
+task: FYDM-P14
+
+operating_mode:
+  auto_submit: false
+  manual_gate_required: true
+  initial_batch_size: 20
+  review_after_candidates: 50
+  scale_rule: "Start with 20-candidate pools, review every 50 candidates, then scale only after source-of-truth platform results improve."
+  source_of_truth: "WorldQuant BRAIN alpha detail and checks"
+  generation_strategy: "profile_stage3_only"
+  generation_strategy_cn: "废弃早期策略储备；只自动生成 analyst4 主体预测字段 + fundamental6 基本面组合字段 + pv1 trade_when 时机门控 + WQ 参数轮换的新 Stage 3 候选。"
+  replenish_strategy: "profile_stage3_only"
+  replenish_quotas: []
+
+task_pools:
+  tp-stage3-liquidity-mainline-v0:
+    label: "Stage 3 liquidity ratio gate mainline"
+    priority: mainline
+    seed_candidate_id: seed-generic-ratio-core-pass
+    variant_family: liquidity_ratio_gate
+    candidate_slug: liqratio
+    stage: 3
+    initial_batch_size: 20
+    review_after_candidates: 50
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_manual_gate
+    expression_template: "trade_when(ts_mean(volume, {fast_window}) / ts_mean(volume, {slow_window}) > {entry_threshold}, {seed_expression}, abs(returns) > {exit_threshold})"
+    required_fields: [volume, returns]
+    grid:
+      fast_window: [5, 10, 15, 20]
+      slow_window: [40, 60, 80, 120]
+      entry_threshold: [0.9, 1.0, 1.1]
+      exit_threshold: [0.08, 0.1, 0.12, 0.15]
+    rationale: "Mainline pool from the positive liquidity-gated branch. Vary windows and exit thresholds in small batches before scaling."
+    risk_notes:
+      - "Do not auto-submit."
+      - "Treat SELF_CORRELATION and official checks as gates."
+      - "Review every 50 candidates before increasing volume."
+
+  tp-stage3-calm-market-contrast-v0:
+    label: "Stage 3 calm market gate contrast"
+    priority: limited_contrast
+    seed_candidate_id: seed-generic-ratio-core-pass
+    variant_family: calm_market_gate
+    candidate_slug: calm
+    stage: 3
+    initial_batch_size: 20
+    review_after_candidates: 50
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_manual_gate
+    expression_template: "trade_when(ts_std_dev(returns, {fast_window}) < ts_std_dev(returns, {slow_window}), {seed_expression}, abs(returns) > {exit_threshold})"
+    required_fields: [returns]
+    grid:
+      fast_window: [3, 5, 10, 15]
+      slow_window: [20, 40, 60, 80]
+      exit_threshold: [0.08, 0.1, 0.12, 0.15]
+    rationale: "Contrast pool from the GOOD but weak-test calm-market sample. Keep small until test stability improves."
+    risk_notes:
+      - "GOOD grade was train-period strong but test-period weak."
+      - "Use as contrast, not mainline scale-up."
+      - "Review every 50 candidates before increasing volume."
+
+  tp-stage3-high-return-exploration-v0:
+    label: "Stage 3 high-return exploration"
+    priority: high_return_exploration
+    objective: high_return
+    target_returns_min: 0.15
+    seed_candidate_id: seed-generic-ratio-core-pass
+    variant_family: high_return_liquidity_gate
+    candidate_slug: highret
+    stage: 3
+    initial_batch_size: 12
+    review_after_candidates: 20
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_auto_probe_manual_submit_gate
+    expression_template: "trade_when(ts_mean(volume, {fast_window}) / ts_mean(volume, {slow_window}) > {entry_threshold}, {seed_expression}, abs(returns) > {exit_threshold})"
+    required_fields: [volume, returns]
+    grid:
+      wq_neutralization: [MARKET, SUBINDUSTRY]
+      wq_decay: [4, 2, 6]
+      wq_truncation: [0.08, 0.12]
+      fast_window: [3, 5, 10]
+      slow_window: [20, 40, 60]
+      entry_threshold: [0.75, 0.85, 0.95, 1.05]
+      exit_threshold: [0.16, 0.2, 0.24]
+    rationale: "Dedicated high-return exploration branch inspired by third-party screenshots showing 20%+ returns. Keep separate from the conservative mainline and evaluate returns only with Sharpe/Fitness/Turnover/Drawdown/Self-correlation gates."
+    risk_notes:
+      - "High-return exploration branch; do not rank by Returns alone."
+      - "Do not auto-submit."
+      - "Treat Sharpe, Fitness, Turnover, Drawdown, Test Sharpe and SELF_CORRELATION as gates."
+      - "Use small replenishment batches; review after 20 official results before increasing volume."
+
+  tp-stage2-earnings-yield-momentum-v0:
+    label: "Stage 2 earnings-yield momentum reset branch"
+    priority: mainline
+    objective: family_reset_core_pass
+    seed_candidate_id: seed-profile-stage2-core-pass
+    variant_family: earnings_yield_momentum
+    candidate_slug: epsyield
+    candidate_suffix_template: "epsyield-lb{lookback}-grp{group_field}-n{wq_neutralization}-d{wq_decay}-tr{wq_truncation}"
+    stage: 2
+    initial_batch_size: 10
+    review_after_candidates: 20
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_auto_probe_manual_submit_gate
+    expression_template: "group_rank(ts_rank(est_eps/close, {lookback}), {group_field})"
+    required_fields: [est_eps, close, industry, subindustry]
+    grid:
+      wq_neutralization: [INDUSTRY, SUBINDUSTRY, MARKET]
+      wq_decay: [4]
+      wq_truncation: [0.08]
+      lookback: [20, 40, 60, 90, 126, 252]
+      group_field: [industry, subindustry]
+    rationale: "Reset away from the crowded liabilities/assets family after self-correlation pressure. Reuse the positive earnings-yield momentum seed and vary lookback/grouping/neutralization in small batches."
+    risk_notes:
+      - "Family reset branch; compare against liabilities/assets branches after official results return."
+      - "Do not auto-submit."
+      - "Treat SELF_CORRELATION and official checks as final gates."
+      - "Review after 20 official results before increasing volume."
+
+  tp-stage2-quality-baseline-v0:
+    label: "Stage 2 balanced quality baseline"
+    priority: quality_baseline
+    objective: balanced_core_metrics_no_gate
+    seed_candidate_id: seed-profile-stage2-core-pass
+    variant_family: quality_baseline_no_gate
+    candidate_slug: qbase
+    candidate_suffix_template: "qbase-lb{lookback}-w{blend_weight}-iw{inverse_weight}-grp{group_field}-n{wq_neutralization}-d{wq_decay}-tr{wq_truncation}"
+    stage: 2
+    initial_batch_size: 20
+    review_after_candidates: 50
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_auto_probe_manual_submit_gate
+    expression_template: "group_rank(add(multiply({blend_weight}, rank(ts_rank({signal_a}, {lookback}))), multiply({inverse_weight}, rank({signal_b}))), {group_field})"
+    required_fields: [est_eps, close, operating_income, assets, industry, subindustry]
+    grid:
+      wq_neutralization: [SUBINDUSTRY, INDUSTRY, MARKET]
+      wq_decay: [4, 2, 6]
+      wq_truncation: [0.08, 0.12]
+      lookback: [20, 60, 126, 252]
+      group_field: [industry, subindustry]
+      signal_a: [est_eps/close]
+      signal_b: [operating_income/assets]
+      blend_weight: [0.65, 0.5, 0.35]
+      inverse_weight: [0.35, 0.5, 0.65]
+    rationale: "Baseline pool for high overall quality without trade_when or market-state gating. Use simple, interpretable quality/value/fundamental blends as a control group against strategy-gated pools."
+    risk_notes:
+      - "No strategy gate and no trade_when; this pool is for baseline quality comparison."
+      - "Do not auto-submit."
+      - "Watch Sharpe, Fitness, Returns, Turnover, Drawdown and Test Sharpe together; do not rank by one metric only."
+      - "Use as a control group against analyst-event and liquidity-gated pools."
+
+  tp-stage3-analyst-earnings-event-reset-v0:
+    label: "Stage 3 analyst earnings event reset"
+    priority: mainline
+    objective: decorrelate_from_leverage_family
+    target_returns_min: 0.1
+    seed_candidate_id: seed-profile-stage2-core-pass
+    variant_family: analyst_earnings_event_gate
+    candidate_slug: analevent
+    candidate_suffix_template: "analevent-lb{lookback}-grp{group_field}-gate{gate_window}-sw{slow_window}-ex{exit_threshold}-n{wq_neutralization}-d{wq_decay}-tr{wq_truncation}"
+    stage: 3
+    initial_batch_size: 12
+    review_after_candidates: 20
+    auto_submit: false
+    manual_gate_required: true
+    simulation_policy: low_frequency_auto_probe_manual_submit_gate
+    expression_template: "trade_when(ts_mean(abs(returns), {gate_window}) < ts_mean(abs(returns), {slow_window}), group_rank(ts_rank(est_eps/close, {lookback}), {group_field}), abs(returns) > {exit_threshold})"
+    required_fields: [est_eps, close, returns, industry, subindustry]
+    grid:
+      wq_neutralization: [SUBINDUSTRY, INDUSTRY, MARKET]
+      wq_decay: [4, 2]
+      wq_truncation: [0.08, 0.12]
+      lookback: [60, 126, 252]
+      group_field: [industry, subindustry]
+      gate_window: [5, 10]
+      slow_window: [40, 60]
+      exit_threshold: [0.1, 0.16]
+    rationale: "Reset branch after leverage/liquidity and plain earnings-yield pools became crowded or high-correlation. Keep the analyst earnings-yield seed but add a low-volatility execution gate and vary neutralization, decay, truncation and grouping."
+    risk_notes:
+      - "Decorrelate from liabilities/assets and liquidity-gated branches."
+      - "Do not auto-submit."
+      - "Treat official SELF_CORRELATION and submission checks as source of truth."
+      - "Review after 20 official results before increasing volume."

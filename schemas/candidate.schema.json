@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/candidate.schema.json",
+  "title": "Factor Factory Candidate",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "template_id",
+    "stage",
+    "platform_target",
+    "artifact_state",
+    "status",
+    "source_data_rights",
+    "reuse_tags",
+    "params",
+    "required_fields",
+    "rendered_expression",
+    "rationale",
+    "review_status"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^cand-[a-z0-9-]+$"
+    },
+    "template_id": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "integer",
+      "enum": [1, 2, 3]
+    },
+    "platform_target": {
+      "type": "string",
+      "enum": ["worldquant_brain"]
+    },
+    "artifact_state": {
+      "type": "string",
+      "enum": [
+        "idea",
+        "candidate",
+        "simulated_locally",
+        "simulated_on_platform",
+        "submitted_to_platform",
+        "accepted_or_monetized"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "drafted",
+        "schema_validated",
+        "locally_scored",
+        "needs_revision",
+        "pending_manual_gate",
+        "ready_for_platform_probe",
+        "manual_result_pending",
+        "result_imported",
+        "reviewed",
+        "probe_blocked"
+      ]
+    },
+    "source_data_rights": {
+      "type": "string",
+      "enum": [
+        "public",
+        "self_collected",
+        "third_party_licensed",
+        "platform_proprietary",
+        "unknown"
+      ]
+    },
+    "reuse_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"]
+      }
+    },
+    "required_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "rendered_expression": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_status": {
+      "type": "string",
+      "enum": ["not_reviewed", "needs_human_gate", "approved", "rejected"]
+    },
+    "status_history": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "drafted",
+          "schema_validated",
+          "locally_scored",
+          "needs_revision",
+          "pending_manual_gate",
+          "ready_for_platform_probe",
+          "manual_result_pending",
+          "result_imported",
+          "reviewed",
+          "probe_blocked"
+        ]
+      },
+      "minItems": 1
+    },
+    "adaptation_notes": {
+      "type": "string"
+    },
+    "risk_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "local_precheck": {
+      "type": "object",
+      "properties": {
+        "score": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": ["ready_for_manual_gate", "needs_revision", "blocked"]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["score", "decision", "notes"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

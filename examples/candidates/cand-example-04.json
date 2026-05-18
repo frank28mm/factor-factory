@@ -1,0 +1,50 @@
+{
+  "candidate_id": "cand-example-04",
+  "template_id": "analyst_earnings_yield_momentum",
+  "stage": 2,
+  "platform_target": "worldquant_brain",
+  "artifact_state": "candidate",
+  "status": "probe_blocked",
+  "source_data_rights": "platform_proprietary",
+  "reuse_tags": [
+    "worldquant_submittable",
+    "self_trading_research"
+  ],
+  "params": {
+    "numerator": "est_eps",
+    "denominator": "close",
+    "lookback": 60,
+    "group_field": "industry"
+  },
+  "required_fields": [
+    "est_eps",
+    "close",
+    "industry"
+  ],
+  "rendered_expression": "group_rank(ts_rank(est_eps/close, 60), industry)",
+  "rationale": "Analyst Earnings Yield Momentum：二阶段在一阶段信号上加入分组比较或中性化，让信号在行业/分组内更可比，减少粗糙暴露。 分析师字段更像预期信息，常用来做盈利预期、修正或收益率相关假设。 时间序列排名把一个字段放回历史窗口里比较，适合表达“当前水平在自己历史中高还是低”。 分组排名把股票放回自己的行业或分组里比较，更像在问“它在同类里排第几”。",
+  "review_status": "needs_human_gate",
+  "adaptation_notes": "Off-platform reuse requires field remapping and a fresh implementation.",
+  "risk_notes": [
+    "No platform call is allowed in dry-run mode.",
+    "Any future connector use must pass a separate gate."
+  ],
+  "local_precheck": {
+    "score": 100,
+    "decision": "ready_for_manual_gate",
+    "notes": [
+      "Schema 完整。",
+      "字段均在最小字段池内。",
+      "模板匹配成功。",
+      "表达式复杂度在 stage 2 预算内。",
+      "数据权限被正确标记为平台专有，边界清晰。"
+    ]
+  },
+  "status_history": [
+    "drafted",
+    "schema_validated",
+    "locally_scored",
+    "pending_manual_gate",
+    "probe_blocked"
+  ]
+}

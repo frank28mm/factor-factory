@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/probe-request.schema.json",
+  "title": "Platform Probe Request",
+  "type": "object",
+  "required": ["candidate_id", "gate_level", "mode", "requested_by"],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^cand-[a-z0-9-]+$"
+    },
+    "gate_level": {
+      "type": "string",
+      "enum": ["gate_1_read_only_contract_check", "gate_2_single_simulation_probe"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["read_only_contract_check", "single_simulation_probe", "simulation_result_query"]
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

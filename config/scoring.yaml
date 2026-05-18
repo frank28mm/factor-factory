@@ -1,0 +1,92 @@
+updated_at: "2026-05-14"
+task: FYDM-P9
+source_map:
+  primary_rules: "knowledge-library/sources/worldquant-brain-official/official-rules-for-factor-factory.md"
+  official_seed: "config/official-worldquant-rules.yaml"
+
+local_precheck:
+  weights:
+    schema_valid: 30
+    fields_valid: 20
+    template_match: 20
+    stage_fit: 15
+    boundary_ok: 15
+  thresholds:
+    ready_for_manual_gate: 80
+    needs_revision: 60
+  hard_blocks:
+    - source_data_rights == unknown
+    - exact_artifact_reuse == true and platform_target == worldquant_brain
+    - artifact_state in [submitted_to_platform, accepted_or_monetized]
+  operator_budgets:
+    stage_1_max: 4
+    stage_2_max: 6
+    stage_3_max: 8
+
+official_platform_gates:
+  source: worldquant-brain-official-rules-2026-05-14
+  source_section: submission_gates
+  delay_1:
+    fitness_min: 1.0
+    sharpe_min: 1.25
+  delay_0:
+    fitness_min: 1.3
+    sharpe_min: 2.0
+  turnover_range:
+    min: 0.01
+    max: 0.70
+  weight_test:
+    max_single_name_weight: 0.10
+  self_correlation:
+    max: 0.70
+    override_rule: "Sharpe must exceed the correlated submitted alpha by at least 10%."
+
+submission_policy:
+  source: user_reported_pending_official_verification
+  source_note: "用户从学习群/平台使用经验补充：官方账号每个提交额度窗口可提交 Alpha 约 4 条；额度窗口以用户当前操作时区中午 12:00 切换，12:00 前算上一窗口，12:00 后算新窗口；后续需用官方页面或账号 UI 再核验。"
+  daily_submission_limit: 4
+  mode: rank_then_auto_submit
+  auto_submit: true
+  quota_cutoff_time: "12:00"
+  quota_timezone: "Asia/Shanghai"
+  accepted_reservation_minutes: 10
+  rule_cn: "可提交 Alpha 进入 submit-ready 池后，系统按质量排序和剩余额度自动提交；每个中午 12:00 切换的额度窗口内最多提交 4 条。"
+  ranking:
+    - fitness
+    - sharpe
+    - test_sharpe
+    - returns
+    - drawdown_asc
+    - turnover_in_range
+
+fitness_ratings:
+  source: worldquant-brain-official-rules-2026-05-14
+  source_section: fitness_ratings
+  delay_1:
+    spectacular: 2.5
+    excellent: 2.0
+    good: 1.5
+    average: 1.0
+  delay_0:
+    spectacular: 3.25
+    excellent: 2.6
+    good: 1.95
+    average: 1.3
+
+state_machine:
+  allowed_transitions:
+    drafted: [schema_validated]
+    schema_validated: [locally_scored, needs_revision]
+    locally_scored: [pending_manual_gate, needs_revision]
+    needs_revision: [drafted]
+    pending_manual_gate: [probe_blocked, ready_for_platform_probe]
+    ready_for_platform_probe: [manual_result_pending, probe_blocked]
+    manual_result_pending: [result_imported]
+    result_imported: [reviewed]
+    reviewed: []
+    probe_blocked: []
+
+default_decision:
+  after_local_dry_run: pending_manual_gate
+  default_probe_decision: probe_blocked
+  probe_block_reason: "P13 boundary says no real connector call is allowed until a separate explicit gate is approved."

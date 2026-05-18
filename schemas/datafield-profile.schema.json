@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/datafield-profile.schema.json",
+  "title": "Factor Factory Datafield Profile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "field_id",
+    "dataset_id",
+    "region",
+    "delay",
+    "universe",
+    "coverage",
+    "quality_flags",
+    "profile_lane",
+    "recommended_templates",
+    "diagnostic_plan"
+  ],
+  "properties": {
+    "profile_id": { "type": "string", "pattern": "^profile-[a-z0-9-]+$" },
+    "run_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "field_id": { "type": "string" },
+    "dataset_id": { "type": "string" },
+    "dataset_name": { "type": "string" },
+    "region": { "type": "string" },
+    "delay": { "type": "integer" },
+    "universe": { "type": "string" },
+    "field_kind": { "type": "string" },
+    "category": { "type": "string" },
+    "description": { "type": "string" },
+    "usage": { "type": "object", "additionalProperties": true },
+    "coverage": { "type": "object", "additionalProperties": true },
+    "update_behavior": { "type": "object", "additionalProperties": true },
+    "distribution": { "type": "object", "additionalProperties": true },
+    "quality_flags": { "type": "array", "items": { "type": "string" } },
+    "field_tags": { "type": "array", "items": { "type": "string" } },
+    "profile_lane": {
+      "type": "string",
+      "enum": ["mainline_ready", "exploratory", "sparse_event", "avoid_for_now"]
+    },
+    "recommended_templates": { "type": "array", "items": { "type": "string" } },
+    "diagnostic_plan": { "type": "object", "additionalProperties": true },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

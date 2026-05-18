@@ -1,0 +1,95 @@
+updated_at: "2026-05-14"
+task: FYDM-P9
+source_map:
+  primary_rules: "knowledge-library/sources/worldquant-brain-official/official-rules-for-factor-factory.md"
+  raw_fields: "knowledge-library/sources/worldquant-brain-official/raw/data-fields-usa-delay1-top3000.json"
+scope:
+  platform: worldquant_brain
+  region: USA
+  delay: 1
+  universe: TOP3000
+  language: FASTEXPR
+
+fields:
+  close:
+    label: Close Price
+    dataset: "Price Volume Data for Equity"
+    category: Price Volume
+    field_kind: matrix
+    stage_support: [1, 2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Use public or licensed close-price history when adapting off-platform."
+  volume:
+    label: Volume
+    dataset: "Price Volume Data for Equity"
+    category: Price Volume
+    field_kind: matrix
+    stage_support: [1, 2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Use public or licensed volume history when adapting off-platform."
+  returns:
+    label: Returns
+    dataset: "Price Volume Data for Equity"
+    category: Price Volume
+    field_kind: matrix
+    stage_support: [1, 2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Can usually be rebuilt from close prices off-platform."
+  industry:
+    label: Industry
+    dataset: "Price Volume Data for Equity"
+    category: Grouping
+    field_kind: grouping
+    stage_support: [2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Grouping fields are excluded from some platform counts but still need remapping off-platform."
+  subindustry:
+    label: Subindustry
+    dataset: "Price Volume Data for Equity"
+    category: Grouping
+    field_kind: grouping
+    stage_support: [2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Default neutralization field inside WorldQuant."
+  operating_income:
+    label: Operating Income
+    dataset: "Company Fundamental Data for Equity"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Requires a licensed/public fundamental proxy outside WorldQuant."
+  liabilities:
+    label: Liabilities Proxy
+    dataset: "Report Footnotes"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    raw_field_proxy: fn_liab_fair_val_l1_a
+    off_platform_note: "Current v0 uses a liabilities proxy; exact off-platform mapping needs a financial-statement equivalent."
+  assets:
+    label: Assets Proxy
+    dataset: "Company Fundamental Data for Equity"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    raw_field_proxy: assets
+    off_platform_note: "Current v0 uses an assets proxy; exact off-platform mapping needs a balance-sheet equivalent."
+  est_eps:
+    label: Estimated EPS
+    dataset: "Analyst Estimate Data for Equity"
+    category: Analyst
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs an analyst-estimate proxy outside WorldQuant."
+  scl12_buzz:
+    label: Short-Term Sentiment Buzz
+    dataset: "Sentiment Data for Equity"
+    category: Social Media
+    field_kind: matrix
+    stage_support: [1, 2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs a licensed sentiment proxy outside WorldQuant."

@@ -1,0 +1,46 @@
+{
+  "candidate_id": "cand-example-01",
+  "template_id": "operating_income_time_series_rank",
+  "stage": 1,
+  "platform_target": "worldquant_brain",
+  "artifact_state": "candidate",
+  "status": "probe_blocked",
+  "source_data_rights": "platform_proprietary",
+  "reuse_tags": [
+    "worldquant_submittable",
+    "self_trading_research"
+  ],
+  "params": {
+    "field": "operating_income",
+    "lookback": 252
+  },
+  "required_fields": [
+    "operating_income"
+  ],
+  "rendered_expression": "ts_rank(operating_income, 252)",
+  "rationale": "Operating Income Time-Series Rank：一阶段先验证基础信号是否有统计味道，重点是找到能解释、能回测的 base signal，而不是一次到位。 基本面字段通常变化慢，适合低频、解释性强的 Alpha 假设。 时间序列排名把一个字段放回历史窗口里比较，适合表达“当前水平在自己历史中高还是低”。",
+  "review_status": "needs_human_gate",
+  "adaptation_notes": "Off-platform reuse requires field remapping and a fresh implementation.",
+  "risk_notes": [
+    "No platform call is allowed in dry-run mode.",
+    "Any future connector use must pass a separate gate."
+  ],
+  "local_precheck": {
+    "score": 100,
+    "decision": "ready_for_manual_gate",
+    "notes": [
+      "Schema 完整。",
+      "字段均在最小字段池内。",
+      "模板匹配成功。",
+      "表达式复杂度在 stage 1 预算内。",
+      "数据权限被正确标记为平台专有，边界清晰。"
+    ]
+  },
+  "status_history": [
+    "drafted",
+    "schema_validated",
+    "locally_scored",
+    "pending_manual_gate",
+    "probe_blocked"
+  ]
+}

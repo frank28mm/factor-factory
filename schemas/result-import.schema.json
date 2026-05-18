@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/result-import.schema.json",
+  "title": "Manual Result Import",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "import_source",
+    "platform",
+    "simulation_settings",
+    "metrics"
+  ],
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^cand-[a-z0-9-]+$"
+    },
+    "import_source": {
+      "type": "string",
+      "enum": ["manual_copy", "manual_csv", "manual_note", "live_simulation_audit", "live_alpha_detail"]
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["worldquant_brain"]
+    },
+    "simulation_settings": {
+      "type": "object",
+      "required": ["region", "delay", "universe", "neutralization"],
+      "properties": {
+        "region": { "type": "string" },
+        "delay": { "type": "integer" },
+        "universe": { "type": "string" },
+        "neutralization": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["sharpe", "fitness", "turnover"],
+      "properties": {
+        "sharpe": { "type": "number" },
+        "fitness": { "type": "number" },
+        "turnover": { "type": "number" },
+        "returns": { "type": "number" },
+        "drawdown": { "type": "number" },
+        "margin": { "type": "number" },
+        "self_correlation": { "type": "number" },
+        "train_sharpe": { "type": "number" },
+        "train_fitness": { "type": "number" },
+        "test_sharpe": { "type": "number" },
+        "test_fitness": { "type": "number" },
+        "train_test_sharpe_gap": { "type": "number" },
+        "train_test_fitness_gap": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "notes": {
+      "type": "string"
+    },
+    "simulation_id": {
+      "type": "string"
+    },
+    "alpha_id": {
+      "type": "string"
+    },
+    "grade": {
+      "type": "string"
+    },
+    "alpha_status": {
+      "type": "string"
+    },
+    "alpha_stage": {
+      "type": "string"
+    },
+    "date_submitted": {
+      "type": "string"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

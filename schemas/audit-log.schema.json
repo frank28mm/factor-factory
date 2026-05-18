@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://factor-factory.local/schemas/audit-log.schema.json",
+  "title": "Factor Factory Audit Log",
+  "type": "object",
+  "required": ["event_id", "event_type", "candidate_id", "created_at"],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["contract_check", "probe_request", "result_import", "submission_review"]
+    },
+    "candidate_id": {
+      "type": "string",
+      "pattern": "^cand-[a-z0-9-]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "details": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

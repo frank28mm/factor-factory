@@ -1,0 +1,51 @@
+{
+  "candidate_id": "cand-example-05",
+  "template_id": "liquidity_gated_sentiment_entry",
+  "stage": 3,
+  "platform_target": "worldquant_brain",
+  "artifact_state": "candidate",
+  "status": "probe_blocked",
+  "source_data_rights": "platform_proprietary",
+  "reuse_tags": [
+    "worldquant_submittable",
+    "self_trading_research"
+  ],
+  "params": {
+    "fast_window": 10,
+    "slow_window": 60,
+    "field": "scl12_buzz",
+    "lookback": 10,
+    "exit_threshold": 0.1
+  },
+  "required_fields": [
+    "volume",
+    "returns",
+    "scl12_buzz"
+  ],
+  "rendered_expression": "trade_when(ts_mean(volume, 10) > ts_mean(volume, 60), -ts_std_dev(scl12_buzz, 10), abs(returns) > 0.1)",
+  "rationale": "Liquidity-Gated Sentiment Entry：三阶段加入事件或执行条件，只在更合适的时机暴露信号，目的是降低噪音和无效交易。 情绪字段反映市场讨论热度和方向，通常更噪音，也更适合配合过滤条件一起使用。 波动或标准差类模板常用于捕捉“过热之后回归”的想法，但也容易把噪音误当信号。 trade_when 先判断条件再决定是否持有信号，适合把高噪音信号变得更可执行。",
+  "review_status": "needs_human_gate",
+  "adaptation_notes": "Off-platform reuse requires field remapping and a fresh implementation.",
+  "risk_notes": [
+    "No platform call is allowed in dry-run mode.",
+    "Any future connector use must pass a separate gate."
+  ],
+  "local_precheck": {
+    "score": 100,
+    "decision": "ready_for_manual_gate",
+    "notes": [
+      "Schema 完整。",
+      "字段均在最小字段池内。",
+      "模板匹配成功。",
+      "表达式复杂度在 stage 3 预算内。",
+      "数据权限被正确标记为平台专有，边界清晰。"
+    ]
+  },
+  "status_history": [
+    "drafted",
+    "schema_validated",
+    "locally_scored",
+    "pending_manual_gate",
+    "probe_blocked"
+  ]
+}

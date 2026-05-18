@@ -1,0 +1,119 @@
+updated_at: "2026-05-14"
+task: FYDM-P9
+source_map:
+  primary_rules: "knowledge-library/sources/worldquant-brain-official/official-rules-for-factor-factory.md"
+  official_seed: "config/official-worldquant-rules.yaml"
+
+templates:
+  operating_income_time_series_rank:
+    label: Operating Income Time-Series Rank
+    stage: 1
+    family: fundamental_time_series_rank
+    expression_template: "ts_rank({field}, {lookback})"
+    parameter_keys: [field, lookback]
+    default_params:
+      field: operating_income
+      lookback: 252
+    required_fields: [operating_income]
+    expected_categories: [Fundamental]
+    operator_budget: 1
+    lesson_keys: [stage_1, fundamental_signal, time_series_rank]
+    reuse_tags: [worldquant_submittable, self_trading_research]
+    official_source:
+      type: official_beginner_example
+      title: Operating Earnings Yield
+
+  liabilities_appreciation_negative_rank:
+    label: Negative Liabilities Appreciation Rank
+    stage: 1
+    family: negative_fundamental_change
+    expression_template: "-ts_rank({field}, {lookback})"
+    parameter_keys: [field, lookback]
+    default_params:
+      field: liabilities
+      lookback: 252
+    required_fields: [liabilities]
+    expected_categories: [Fundamental]
+    operator_budget: 1
+    lesson_keys: [stage_1, negative_signal, time_series_rank]
+    reuse_tags: [worldquant_submittable, self_trading_research]
+    official_source:
+      type: official_beginner_example
+      title: Appreciation of liabilities
+
+  leverage_ratio:
+    label: Financial Leverage Ratio
+    stage: 1
+    family: financial_ratio
+    expression_template: "{numerator}/{denominator}"
+    parameter_keys: [numerator, denominator]
+    default_params:
+      numerator: liabilities
+      denominator: assets
+    required_fields: [liabilities, assets]
+    expected_categories: [Fundamental]
+    operator_budget: 1
+    lesson_keys: [stage_1, financial_ratio]
+    reuse_tags: [worldquant_submittable, numerai_adaptable, quantiacs_adaptable, self_trading_research]
+    official_source:
+      type: official_beginner_example
+      title: Power of leverage
+
+  analyst_earnings_yield_momentum:
+    label: Analyst Earnings Yield Momentum
+    stage: 2
+    family: analyst_group_rank
+    expression_template: "group_rank(ts_rank({numerator}/{denominator}, {lookback}), {group_field})"
+    parameter_keys: [numerator, denominator, lookback, group_field]
+    default_params:
+      numerator: est_eps
+      denominator: close
+      lookback: 60
+      group_field: industry
+    required_fields: [est_eps, close, industry]
+    expected_categories: [Analyst, Price Volume, Grouping]
+    operator_budget: 2
+    lesson_keys: [stage_2, analyst_signal, time_series_rank, group_rank]
+    reuse_tags: [worldquant_submittable, self_trading_research]
+    official_source:
+      type: official_beginner_example
+      title: Earnings Yield Momentum
+
+  sentiment_volume_stability:
+    label: Sentiment Volume Stability
+    stage: 1
+    family: sentiment_volatility_reversal
+    expression_template: "-ts_std_dev({field}, {lookback})"
+    parameter_keys: [field, lookback]
+    default_params:
+      field: scl12_buzz
+      lookback: 10
+    required_fields: [scl12_buzz]
+    expected_categories: [Sentiment]
+    operator_budget: 1
+    lesson_keys: [stage_1, sentiment_signal, volatility_reversal]
+    reuse_tags: [worldquant_submittable, self_trading_research]
+    official_source:
+      type: official_beginner_example
+      title: Short-Term Sentiment Volume Stability
+
+  liquidity_gated_sentiment_entry:
+    label: Liquidity-Gated Sentiment Entry
+    stage: 3
+    family: trade_when_sentiment
+    expression_template: "trade_when(ts_mean(volume, {fast_window}) > ts_mean(volume, {slow_window}), -ts_std_dev({field}, {lookback}), abs(returns) > {exit_threshold})"
+    parameter_keys: [fast_window, slow_window, field, lookback, exit_threshold]
+    default_params:
+      fast_window: 10
+      slow_window: 60
+      field: scl12_buzz
+      lookback: 10
+      exit_threshold: 0.1
+    required_fields: [volume, returns, scl12_buzz]
+    expected_categories: [Price Volume, Sentiment]
+    operator_budget: 5
+    lesson_keys: [stage_3, sentiment_signal, volatility_reversal, trade_when_gate]
+    reuse_tags: [worldquant_submittable, self_trading_research]
+    derived_from:
+      template: sentiment_volume_stability
+      transformation: stage_3_liquidity_gate
