@@ -121,6 +121,54 @@ class DistributionPackageTest(unittest.TestCase):
             for marker in self.load_manifest()["blocked_text_markers"]:
                 self.assertNotIn(marker, package_text)
 
+    def test_clean_package_can_bootstrap_public_candidate_pool(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            output = pathlib.Path(tmp) / "factor-factory-clean"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(DIST / "build_package.py"),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_v15_local_cycle.py",
+                    "--run-id",
+                    "public-smoke",
+                    "--candidate-limit",
+                    "3",
+                ],
+                cwd=output,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            payload = json.loads(result.stdout)
+
+            self.assertEqual(payload["mode"], "local_only")
+            self.assertEqual(payload["stage2_generation"]["generated_count"], 3)
+            self.assertTrue(payload["official_course_gate"]["confirmed"])
+            self.assertEqual(payload["profiles"]["profile_count"], 16)
+            self.assertEqual(len(list((output / "state" / "queue").glob("cand-*.json"))), 3)
+            self.assertTrue((output / "state" / "ledger" / "datafield-profile-ledger.json").exists())
+            self.assertTrue((output / "state" / "ledger" / "datafield-selection-public-smoke-select-analyst4.json").exists())
+            self.assertTrue((output / "state" / "visual" / "factor-factory-dashboard.html").exists())
+
+    def test_manifest_includes_public_knowledge_bootstrap_assets(self) -> None:
+        manifest = self.load_manifest()
+
+        self.assertIn("knowledge-library", manifest["include_dirs"])
+        self.assertIn("docs/wq-official-course-public-gate.md", manifest["include_files"])
+        self.assertTrue((ROOT / "scripts" / "sync_worldquant_official.py").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

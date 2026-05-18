@@ -19,6 +19,14 @@ fields:
     stage_support: [1, 2, 3]
     source_data_rights: platform_proprietary
     off_platform_note: "Use public or licensed close-price history when adapting off-platform."
+  cap:
+    label: Market Capitalization
+    dataset: "Price Volume Data for Equity"
+    category: Price Volume
+    field_kind: matrix
+    stage_support: [1, 2, 3]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Use public or licensed market-cap proxy when adapting off-platform."
   volume:
     label: Volume
     dataset: "Price Volume Data for Equity"
@@ -59,6 +67,30 @@ fields:
     stage_support: [1, 2]
     source_data_rights: platform_proprietary
     off_platform_note: "Requires a licensed/public fundamental proxy outside WorldQuant."
+  sales:
+    label: Sales
+    dataset: "Company Fundamental Data for Equity"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Requires a licensed/public revenue proxy outside WorldQuant."
+  cashflow_op:
+    label: Cash Flow From Operations
+    dataset: "Company Fundamental Data for Equity"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Requires a licensed/public operating cash-flow proxy outside WorldQuant."
+  inventory_turnover:
+    label: Inventory Turnover
+    dataset: "Company Fundamental Data for Equity"
+    category: Fundamental
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Requires a licensed/public inventory-turnover proxy outside WorldQuant."
   liabilities:
     label: Liabilities Proxy
     dataset: "Report Footnotes"
@@ -79,6 +111,38 @@ fields:
     off_platform_note: "Current v0 uses an assets proxy; exact off-platform mapping needs a balance-sheet equivalent."
   est_eps:
     label: Estimated EPS
+    dataset: "Analyst Estimate Data for Equity"
+    category: Analyst
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs an analyst-estimate proxy outside WorldQuant."
+  est_sales:
+    label: Estimated Sales
+    dataset: "Analyst Estimate Data for Equity"
+    category: Analyst
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs an analyst-estimate proxy outside WorldQuant."
+  est_capex:
+    label: Estimated Capital Expenditures
+    dataset: "Analyst Estimate Data for Equity"
+    category: Analyst
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs an analyst-estimate proxy outside WorldQuant."
+  est_netprofit:
+    label: Estimated Net Profit
+    dataset: "Analyst Estimate Data for Equity"
+    category: Analyst
+    field_kind: matrix
+    stage_support: [1, 2]
+    source_data_rights: platform_proprietary
+    off_platform_note: "Needs an analyst-estimate proxy outside WorldQuant."
+  est_ptp:
+    label: Estimated Pretax Profit
     dataset: "Analyst Estimate Data for Equity"
     category: Analyst
     field_kind: matrix

@@ -22,7 +22,7 @@ PROFILE_DIR = STATE / "datafield-profiles"
 SCHEMAS = ROOT / "schemas"
 
 POOL_ID = "profile-stage2-field-blend-v15"
-DEFAULT_SEED_CANDIDATE_ID = "seed-profile-stage2-core-pass"
+DEFAULT_SEED_CANDIDATE_ID = "public-bootstrap-seed"
 GENERATION_RULE_VERSION = "v16-analyst4-fundamental6-pv1-wq-rotation"
 ANALYST_FIELD_PRIORITY = ["est_eps", "est_netprofit", "est_ptp", "est_sales", "est_capex"]
 FUNDAMENTAL_FIELD_PRIORITY = ["inventory_turnover", "sales", "operating_income"]
@@ -152,9 +152,10 @@ def official_course_gate_metadata() -> dict[str, str | int | bool]:
     return {
         "official_course_read_gate": True,
         "official_course_read_status": str(summary["full_read_status"]),
-        "official_course_transcript_lines": int(summary["transcript_lines"]),
-        "official_course_keyframes_count": int(summary["keyframes_count"]),
-        "official_course_ocr_json_count": int(summary["ocr_json_count"]),
+        "official_course_gate_mode": str(summary.get("mode", "private_full_audit")),
+        "official_course_transcript_lines": int(summary.get("transcript_lines") or 0),
+        "official_course_keyframes_count": int(summary.get("keyframes_count") or 0),
+        "official_course_ocr_json_count": int(summary.get("ocr_json_count") or 0),
     }
 
 
@@ -246,6 +247,7 @@ def candidate_payload(params: dict[str, Any], fields: list[str], expression: str
         "adaptation_notes": adaptation,
         "risk_notes": [
             "Local candidate only; no platform call was made.",
+            "Public bootstrap seed is not an official core-passed alpha; run with your own account before promotion.",
             "Profile-driven narrow gate does not mean obscure fields; it means evidence-backed differentiated combinations.",
             "Do not auto-submit; official checks and quota rules remain authoritative.",
         ],

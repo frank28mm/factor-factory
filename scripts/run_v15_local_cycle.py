@@ -77,6 +77,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--candidate-limit", type=int, default=30)
     parser.add_argument("--profile-probe-limit-per-field", type=int, default=6)
     parser.add_argument("--field-id", action="append", default=[], help="Override profiled field ids. Can be repeated.")
+    parser.add_argument("--seed-candidate-id", default="public-bootstrap-seed")
     return parser.parse_args()
 
 
@@ -165,6 +166,7 @@ def main() -> int:
         analyst_rows,
         fundamental_rows,
         max(0, args.candidate_limit),
+        safe_slug(str(args.seed_candidate_id)),
         pv_rows=pv_rows,
     )
     generated_ids = []

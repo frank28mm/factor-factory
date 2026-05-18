@@ -5,6 +5,7 @@
   "include_files": [
     "docs/factor-factory-public-case-studies.md",
     "docs/factor-factory-distribution-runbook-2026-05-18.md",
+    "docs/wq-official-course-public-gate.md",
     "requirements.txt"
   ],
   "include_dirs": [
@@ -12,6 +13,7 @@
     "connectors",
     "distribution",
     "examples",
+    "knowledge-library",
     "schemas",
     "scripts",
     "tests"

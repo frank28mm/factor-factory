@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .simulation_probe import normalize_api_payload
 from .session_client import browser_fetch_json_response
 
 
@@ -153,7 +154,7 @@ def create_simulation(target_id: str, api_payload: dict[str, object]) -> dict[st
         target_id,
         "/simulations",
         method="POST",
-        json_body=api_payload,
+        json_body=normalize_api_payload(api_payload),
     )
 
 

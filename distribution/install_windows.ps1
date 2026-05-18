@@ -16,6 +16,8 @@ if (Test-Path "requirements.txt") {
 
 Write-Host ""
 Write-Host "Install OK. Next:"
-Write-Host "1. Open Chrome and log in to https://platform.worldquantbrain.com/"
-Write-Host "2. Run: $Python distribution/doctor.py"
-Write-Host "3. Start dry run: powershell -ExecutionPolicy Bypass -File distribution/run_windows.ps1 -DryRunOnce"
+Write-Host "1. Bootstrap local candidates: $Python scripts/run_v15_local_cycle.py --run-id first-local-cycle --candidate-limit 20"
+Write-Host "2. Optional live sync: start the browser bridge, open Chrome, log in to https://platform.worldquantbrain.com/"
+Write-Host "3. Optional official metadata sync: $Python scripts/sync_worldquant_official.py --fields-only"
+Write-Host "4. Live doctor: $Python distribution/doctor.py"
+Write-Host "5. Start dry run: powershell -ExecutionPolicy Bypass -File distribution/run_windows.ps1 -DryRunOnce"

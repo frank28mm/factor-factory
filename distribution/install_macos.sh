@@ -17,6 +17,8 @@ fi
 
 echo
 echo "Install OK. Next:"
-echo "1. Open Chrome and log in to https://platform.worldquantbrain.com/"
-echo "2. Run: $PYTHON distribution/doctor.py"
-echo "3. Start dry run: bash distribution/run_macos.sh --dry-run-once"
+echo "1. Bootstrap local candidates: $PYTHON scripts/run_v15_local_cycle.py --run-id first-local-cycle --candidate-limit 20"
+echo "2. Optional live sync: start the browser bridge, open Chrome, log in to https://platform.worldquantbrain.com/"
+echo "3. Optional official metadata sync: $PYTHON scripts/sync_worldquant_official.py --fields-only"
+echo "4. Live doctor: $PYTHON distribution/doctor.py"
+echo "5. Start dry run: bash distribution/run_macos.sh --dry-run-once"

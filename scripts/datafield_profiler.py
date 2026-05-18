@@ -7,21 +7,32 @@ from collections import Counter
 from datetime import datetime, timezone
 from typing import Any
 
+import yaml
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-PROJECT_ROOT = ROOT.parents[0]
 STATE = ROOT / "state"
 LEDGER = STATE / "ledger"
 PROFILE_DIR = STATE / "datafield-profiles"
 PROFILE_PROBE_DIR = STATE / "datafield-profile-probes"
 RAW_FIELDS = (
-    PROJECT_ROOT
+    ROOT
     / "knowledge-library"
     / "sources"
     / "worldquant-brain-official"
     / "raw"
     / "data-fields-usa-delay1-top3000.json"
 )
+CONFIG_FIELDS = ROOT / "config" / "fields.yaml"
+
+DATASET_IDS = {
+    "Analyst": "analyst4",
+    "Fundamental": "fundamental6",
+    "Grouping": "pv1",
+    "Price Volume": "pv1",
+    "Social Media": "socialmedia12",
+    "Sentiment": "sentiment12",
+}
 
 
 def utc_now() -> str:
@@ -30,6 +41,10 @@ def utc_now() -> str:
 
 def read_json(path: pathlib.Path) -> dict[str, Any] | list[Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_yaml(path: pathlib.Path) -> dict[str, Any]:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def write_json(path: pathlib.Path, payload: object) -> None:
@@ -46,6 +61,8 @@ def safe_slug(value: str) -> str:
 
 
 def load_raw_fields(path: pathlib.Path = RAW_FIELDS) -> list[dict[str, Any]]:
+    if not path.exists():
+        return load_starter_fields()
     payload = read_json(path)
     if not isinstance(payload, dict):
         raise RuntimeError(f"Expected object in raw field file: {path}")
@@ -53,6 +70,71 @@ def load_raw_fields(path: pathlib.Path = RAW_FIELDS) -> list[dict[str, Any]]:
     if not isinstance(results, list):
         raise RuntimeError(f"Expected results list in raw field file: {path}")
     return [row for row in results if isinstance(row, dict) and row.get("id")]
+
+
+def starter_dataset_id(meta: dict[str, Any]) -> str:
+    category = str(meta.get("category") or "")
+    return str(meta.get("dataset_id") or DATASET_IDS.get(category, safe_slug(category)))
+
+
+def starter_dataset_name(meta: dict[str, Any]) -> str:
+    return str(meta.get("dataset") or meta.get("dataset_name") or starter_dataset_id(meta))
+
+
+def starter_coverage(field_id: str, meta: dict[str, Any]) -> float | None:
+    if isinstance(meta.get("coverage"), (int, float)):
+        return float(meta["coverage"])
+    category = str(meta.get("category") or "")
+    if category in {"Price Volume", "Grouping"}:
+        return 1.0
+    if category == "Analyst":
+        analyst_defaults = {
+            "est_eps": 0.7848,
+            "est_netprofit": 0.7861,
+            "est_ptp": 0.7527,
+            "est_sales": 0.7458,
+            "est_capex": 0.6427,
+        }
+        return analyst_defaults.get(field_id, 0.65)
+    if category == "Fundamental":
+        return 0.5
+    return None
+
+
+def load_starter_fields(config_path: pathlib.Path = CONFIG_FIELDS) -> list[dict[str, Any]]:
+    config = read_yaml(config_path)
+    fields = config.get("fields", {})
+    if not isinstance(fields, dict) or not fields:
+        raise RuntimeError(f"Expected starter fields in config: {config_path}")
+    rows = []
+    for field_id, meta in fields.items():
+        if not isinstance(meta, dict):
+            continue
+        coverage = starter_coverage(str(field_id), meta)
+        rows.append(
+            {
+                "id": str(field_id),
+                "description": str(meta.get("label") or field_id),
+                "type": str(meta.get("field_kind") or "matrix"),
+                "region": config.get("scope", {}).get("region", "USA"),
+                "delay": int(config.get("scope", {}).get("delay", 1)),
+                "universe": config.get("scope", {}).get("universe", "TOP3000"),
+                "coverage": coverage,
+                "dateCoverage": 1.0 if coverage == 1.0 else None,
+                "userCount": int(meta.get("user_count") or 0),
+                "alphaCount": int(meta.get("alpha_count") or 0),
+                "dataset": {
+                    "id": starter_dataset_id(meta),
+                    "name": starter_dataset_name(meta),
+                },
+                "category": {
+                    "id": safe_slug(str(meta.get("category") or "")),
+                    "name": str(meta.get("category") or ""),
+                },
+                "source": "public_starter_config",
+            }
+        )
+    return rows
 
 
 def fields_by_id(path: pathlib.Path = RAW_FIELDS) -> dict[str, dict[str, Any]]:

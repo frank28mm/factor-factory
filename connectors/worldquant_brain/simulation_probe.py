@@ -23,6 +23,26 @@ class SimulationProbeRequest:
     visualization: bool = False
 
 
+def enum_bool(value: Any, true_value: str = "ON", false_value: str = "OFF") -> str:
+    if isinstance(value, bool):
+        return true_value if value else false_value
+    if isinstance(value, str):
+        normalized = value.strip().upper()
+        if normalized in {true_value.upper(), "TRUE", "1", "YES"}:
+            return true_value
+        if normalized in {false_value.upper(), "FALSE", "0", "NO"}:
+            return false_value
+    return str(value)
+
+
+def boolean_value(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes", "on"}
+    return bool(value)
+
+
 def setting_value(candidate: dict[str, Any], settings: dict[str, Any], api_key: str, candidate_key: str, default: Any = None) -> Any:
     params = candidate.get("params", {})
     if candidate_key in params:
@@ -42,16 +62,29 @@ def build_simulation_request(candidate: dict, settings: dict) -> SimulationProbe
         language=setting_value(candidate, settings, "language", "wq_language", "FASTEXPR"),
         decay=int(setting_value(candidate, settings, "decay", "wq_decay", 4)),
         truncation=float(setting_value(candidate, settings, "truncation", "wq_truncation", 0.08)),
-        pasteurization=setting_value(candidate, settings, "pasteurization", "wq_pasteurization", "ON"),
+        pasteurization=enum_bool(setting_value(candidate, settings, "pasteurization", "wq_pasteurization", "ON")),
         unit_handling=setting_value(candidate, settings, "unitHandling", "wq_unit_handling", "VERIFY"),
-        nan_handling=setting_value(candidate, settings, "nanHandling", "wq_nan_handling", "OFF"),
+        nan_handling=enum_bool(setting_value(candidate, settings, "nanHandling", "wq_nan_handling", "OFF")),
         test_period=setting_value(candidate, settings, "testPeriod", "wq_test_period", "P1Y"),
-        visualization=bool(setting_value(candidate, settings, "visualization", "wq_visualization", False)),
+        visualization=boolean_value(setting_value(candidate, settings, "visualization", "wq_visualization", False)),
     )
 
 
+def normalize_api_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(payload)
+    settings = dict(normalized.get("settings") or {})
+    if "pasteurization" in settings:
+        settings["pasteurization"] = enum_bool(settings["pasteurization"])
+    if "nanHandling" in settings:
+        settings["nanHandling"] = enum_bool(settings["nanHandling"])
+    if "visualization" in settings:
+        settings["visualization"] = boolean_value(settings["visualization"])
+    normalized["settings"] = settings
+    return normalized
+
+
 def to_api_payload(request: SimulationProbeRequest) -> dict[str, object]:
-    return {
+    return normalize_api_payload({
         "regular": request.expression,
         "type": "REGULAR",
         "settings": {
@@ -69,4 +102,4 @@ def to_api_payload(request: SimulationProbeRequest) -> dict[str, object]:
             "testPeriod": request.test_period,
             "visualization": request.visualization,
         },
-    }
+    })

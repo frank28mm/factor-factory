@@ -17,6 +17,7 @@ OCR_MD = RAW_COURSE / "ocr" / "keyframes_ocr.md"
 OCR_JSON = RAW_COURSE / "ocr" / "keyframes_ocr.json"
 KEYFRAMES_DIR = RAW_COURSE / "keyframes"
 AUDIT_DOC = ROOT / "docs" / "wq-official-course-full-read-audit-2026-05-17.md"
+PUBLIC_GATE_DOC = ROOT / "docs" / "wq-official-course-public-gate.md"
 
 EXPECTED = {
     "transcript_lines": 2798,
@@ -50,7 +51,37 @@ def check(name: str, actual: Any, expected: Any) -> dict[str, Any]:
     }
 
 
+def build_public_payload() -> dict[str, Any]:
+    gate_text = PUBLIC_GATE_DOC.read_text(encoding="utf-8")
+    status = audit_status(gate_text)
+    summary = {
+        "full_read_status": status,
+        "mode": "public_bootstrap",
+        "audit_doc": str(PUBLIC_GATE_DOC),
+        "private_raw_course_bundle_included": False,
+        "live_platform_actions": False,
+    }
+    checks = [
+        check("public_gate_status", summary["full_read_status"], "PUBLIC_BOOTSTRAP_CONFIRMED"),
+        check("private_raw_course_bundle_included", summary["private_raw_course_bundle_included"], False),
+        check("live_platform_actions", summary["live_platform_actions"], False),
+    ]
+    confirmed = all(row["ok"] for row in checks)
+    return {
+        "status": "PASS" if confirmed else "FAIL",
+        "confirmed": confirmed,
+        "summary": summary,
+        "checks": checks,
+    }
+
+
 def build_payload() -> dict[str, Any]:
+    if not AUDIT_DOC.exists() or not RAW_COURSE.exists():
+        if not PUBLIC_GATE_DOC.exists():
+            raise FileNotFoundError(
+                f"Missing private audit doc {AUDIT_DOC} and public gate doc {PUBLIC_GATE_DOC}"
+            )
+        return build_public_payload()
     audit_text = AUDIT_DOC.read_text(encoding="utf-8")
     ocr_payload = read_json(OCR_JSON)
     keyframes_count = len(list(KEYFRAMES_DIR.glob("*.jpg")))
