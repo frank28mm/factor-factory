@@ -32,6 +32,21 @@ def run_json(command: list[str]) -> dict[str, Any]:
     return json.loads(result.stdout)
 
 
+def command_error_text(error: subprocess.CalledProcessError) -> str:
+    text = "\n".join(part for part in (error.stderr, error.stdout) if part)
+    return text.strip() or str(error)
+
+
+def subprocess_error_event(command: list[str], error: subprocess.CalledProcessError) -> dict[str, Any]:
+    return {
+        "classification": "subprocess_error",
+        "stopped": {"reason": "subprocess_error"},
+        "returncode": error.returncode,
+        "command": " ".join(command),
+        "error": command_error_text(error),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Automatically send locally screened candidates to official simulation.")
     parser.add_argument("--limit", type=int, default=3, help="Maximum candidates to send in this batch.")
@@ -88,6 +103,12 @@ def select_candidates(
 
 
 def stop_reason(event: dict[str, Any]) -> str | None:
+    classification = event.get("classification")
+    if classification in STOP_CLASSIFICATIONS or classification == "subprocess_error":
+        return str(classification)
+    stopped = event.get("stopped")
+    if isinstance(stopped, dict) and stopped.get("reason"):
+        return str(stopped["reason"])
     for step in event.get("steps", []):
         if not isinstance(step, dict):
             continue
@@ -128,7 +149,10 @@ def run_batch(args: argparse.Namespace) -> dict[str, Any]:
     for row in selected:
         candidate_id = str(row["candidate_id"])
         command = simulation_command(candidate_id, args.target_id)
-        event = run_json(command)
+        try:
+            event = run_json(command)
+        except subprocess.CalledProcessError as error:
+            event = subprocess_error_event(command, error)
         launched.append(
             {
                 "candidate_id": candidate_id,

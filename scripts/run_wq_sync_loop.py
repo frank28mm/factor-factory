@@ -43,6 +43,17 @@ def command_error_text(error: subprocess.CalledProcessError) -> str:
     return text.strip() or str(error)
 
 
+def subprocess_error_event(command: list[str], error: subprocess.CalledProcessError) -> dict[str, Any]:
+    return {
+        "selected_count": 0,
+        "launched_count": 0,
+        "stopped": {"reason": "subprocess_error"},
+        "returncode": error.returncode,
+        "command": " ".join(command),
+        "error": command_error_text(error),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -646,8 +657,24 @@ def maybe_profile_replenish(
 ) -> dict[str, Any] | None:
     if not getattr(args, "profile_replenish", True):
         return None
+    strategy_payload = read_pool_strategy_payload()
+    strategy = pool_strategy_from_payload(strategy_payload, PROFILE_REPLENISH_POOL_ID)
     ready_before = ready_probe_count(PROFILE_REPLENISH_POOL_ID)
     threshold = max(0, int(getattr(args, "replenish_min_ready", 0) or 0))
+    if strategy and strategy.get("blocked_for_auto_replenish"):
+        return {
+            "enabled": True,
+            "quota_strategy": "profile_fallback",
+            "pool_id": PROFILE_REPLENISH_POOL_ID,
+            "probe_pool_id": "",
+            "ready_before": ready_before,
+            "threshold": threshold,
+            "generated_count": 0,
+            "reason": "profile_pool_strategy_blocked",
+            "pool_status": strategy.get("pool_status"),
+            "recommended_action_cn": strategy.get("recommended_action_cn"),
+            "blocked_quota_context": blocked_context or {},
+        }
     if ready_before >= threshold:
         return {
             "enabled": True,
@@ -844,7 +871,7 @@ def apply_stage_cooldown(
     cooldown_seconds: int,
     created_at: datetime | None = None,
 ) -> bool:
-    if stopped.get("stage") != "probe_batch" or stopped.get("reason") != "rate_limited":
+    if stopped.get("stage") != "probe_batch" or stopped.get("reason") not in {"rate_limited", "subprocess_error"}:
         return False
     created_at = created_at or datetime.now(timezone.utc)
     cooldown_seconds = max(0, int(cooldown_seconds))
@@ -944,12 +971,17 @@ def run_cycle(args: argparse.Namespace, run_id: str, probe_cooldown: dict[str, A
     cycle["open_slots"] = open_slots
     cycle["probe_launch_limit"] = launch_limit
 
+    replenish_probe_pool_id = cycle["replenish"].get("probe_pool_id") if isinstance(cycle.get("replenish"), dict) else None
     replenish_pool_id = cycle["replenish"].get("pool_id") if isinstance(cycle.get("replenish"), dict) else None
-    probe_pool_id = str(replenish_pool_id) if replenish_pool_id and not args.pool_id else None
+    probe_pool_id = str(replenish_probe_pool_id if replenish_probe_pool_id is not None else replenish_pool_id) if not args.pool_id else None
     cycle["probe_pool_id"] = probe_pool_id or args.pool_id or ""
 
     if launch_limit > 0:
-        probe_event = run_json(probe_batch_command(args, launch_limit, run_id, probe_pool_id))
+        command = probe_batch_command(args, launch_limit, run_id, probe_pool_id)
+        try:
+            probe_event = run_json(command)
+        except subprocess.CalledProcessError as error:
+            probe_event = subprocess_error_event(command, error)
     else:
         probe_event = {
             "selected_count": 0,

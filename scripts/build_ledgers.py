@@ -724,8 +724,22 @@ def pool_strategy_status(pool: dict[str, Any]) -> tuple[str, bool, bool, str]:
     simulated_count = int(pool.get("simulated_count") or 0)
     core_passed_count = int(pool.get("core_passed_count") or 0)
     waiting_checks_count = int(pool.get("waiting_checks_count") or 0)
-    review_after = 20 if str(pool.get("task_pool_priority")) == "high_return_exploration" else 50
-    if str(pool.get("task_pool_priority")) == "profile_driven_narrow_gate" and submitted_count:
+    task_pool_priority = str(pool.get("task_pool_priority"))
+    core_pass_rate = safe_rate(core_passed_count, simulated_count)
+    archive_rate = safe_rate(archived_count, simulated_count)
+    review_after = 20 if task_pool_priority == "high_return_exploration" else 50
+    if task_pool_priority == "profile_driven_narrow_gate" and simulated_count >= 20:
+        if core_pass_rate < 0.30 or archived_count >= 20 or archive_rate >= 0.15:
+            return (
+                "profile_quality_revise",
+                True,
+                True,
+                (
+                    f"profile 字段迁移池已跑 {simulated_count} 个，核心过线率 {core_pass_rate:.2%}，"
+                    f"高相关归档 {archived_count} 个；停止自动送测/补货，先复盘字段组合、参数和去相关。"
+                ),
+            )
+    if task_pool_priority == "profile_driven_narrow_gate" and submitted_count:
         return (
             "winner_migration_active",
             False,
@@ -813,8 +827,13 @@ def build_pool_strategy(
                 "archived_count": pool.get("archived_count", 0),
                 "simulated_count": pool.get("simulated_count", 0),
                 "core_passed_count": pool.get("core_passed_count", 0),
+                "core_pass_rate": pool.get(
+                    "core_pass_rate",
+                    safe_rate(int(pool.get("core_passed_count") or 0), int(pool.get("simulated_count") or 0)),
+                ),
                 "submit_ready_count": pool.get("submit_ready_count", 0),
                 "waiting_checks_count": pool.get("waiting_checks_count", 0),
+                "archived_rate": safe_rate(int(pool.get("archived_count") or 0), int(pool.get("simulated_count") or 0)),
                 "recommended_action_cn": reason,
             }
         )
