@@ -40,6 +40,8 @@ bash distribution/run_macos.sh --dry-run-once
 bash distribution/run_macos.sh --background
 ```
 
+The background macOS loop polls every 15 seconds by default, keeps at most 3 official simulations running, fills open simulation slots from the local probe pool, and automatically submits up to 4 submit-ready alphas per day when quota and official checks allow it.
+
 ## Windows Quick Start
 
 Run PowerShell from the project root:

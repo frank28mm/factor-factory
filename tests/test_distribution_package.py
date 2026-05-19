@@ -54,6 +54,7 @@ class DistributionPackageTest(unittest.TestCase):
             "distribution/doctor.py",
             "distribution/build_package.py",
             "distribution/package_manifest.json",
+            "start_factor_factory.sh",
         ]
 
         for rel in required:
@@ -107,6 +108,7 @@ class DistributionPackageTest(unittest.TestCase):
             self.assertTrue((output / "README.md").exists())
             self.assertTrue((output / ".gitignore").exists())
             self.assertIn("state/**", (output / ".gitignore").read_text(encoding="utf-8"))
+            self.assertTrue((output / "start_factor_factory.sh").exists())
             self.assertTrue((output / "distribution" / "doctor.py").exists())
             self.assertTrue((output / "scripts" / "run_wq_sync_loop.py").exists())
             self.assertEqual(sorted(path.name for path in (output / "state" / "audit").iterdir()), [".gitkeep"])

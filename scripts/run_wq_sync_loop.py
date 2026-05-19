@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument("--max-cycles", type=int, default=1, help="Number of loop cycles. Use 0 for continuous mode.")
-    parser.add_argument("--interval-seconds", type=int, default=300, help="Sleep between cycles in continuous mode.")
+    parser.add_argument("--interval-seconds", type=int, default=15, help="Sleep between cycles in continuous mode.")
     parser.add_argument("--rate-limit-cooldown-seconds", type=int, default=600, help="Sleep before retrying after a 429/rate-limited response.")
     parser.add_argument(
         "--probe-rate-limit-cooldown-seconds",
@@ -141,9 +141,14 @@ def submission_quota_stop(status: dict[str, Any]) -> dict[str, str] | None:
     remaining_quota = status.get("remaining_submission_quota")
     if isinstance(remaining_quota, int) and remaining_quota <= 0:
         return {"stage": "submission_quota", "reason": "remaining_submission_quota_zero"}
-    if status.get("submission_gate_locked"):
-        return {"stage": "submission_quota", "reason": "submission_gate_locked"}
     return None
+
+
+def continuous_should_continue_after_stop(stopped: dict[str, Any]) -> bool:
+    return stopped.get("stage") == "submission_quota" and stopped.get("reason") in {
+        "remaining_submission_quota_zero",
+        "submission_gate_locked",
+    }
 
 
 def submission_quota_reserved_stop(status: dict[str, Any], submit_event: dict[str, Any]) -> dict[str, str] | None:
@@ -1060,6 +1065,17 @@ def run_loop(args: argparse.Namespace) -> dict[str, Any]:
 
         stopped = cycle.get("stopped")
         if isinstance(stopped, dict):
+            if continuous and continuous_should_continue_after_stop(stopped):
+                payload["last_submission_quota_stop"] = {
+                    "cycle": cycle_index,
+                    "stage": stopped.get("stage"),
+                    "reason": stopped.get("reason"),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                }
+                write_json(AUDIT / f"wq-sync-loop-{base_run_id}.json", payload)
+                if not args.no_sleep:
+                    time.sleep(max(0, int(args.interval_seconds)))
+                continue
             if continuous and apply_stage_cooldown(
                 payload,
                 cycle_index=cycle_index,

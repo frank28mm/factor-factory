@@ -40,6 +40,16 @@ bash distribution/run_macos.sh --dry-run-once
 bash distribution/run_macos.sh --background
 ```
 
+Or use the root one-click wrapper:
+
+```bash
+./start_factor_factory.sh dry-run
+./start_factor_factory.sh start-continuous
+./start_factor_factory.sh status
+```
+
+The default macOS loop polls every 15 seconds, keeps at most 3 official simulations running, fills open slots from the local probe pool, refreshes ledgers/dashboard, and automatically submits up to 4 submit-ready alphas per day when the user's WQ account quota and official checks allow it. The old one-shot 5-minute scheduler is intentionally not included.
+
 ## Windows Quick Start
 
 Run PowerShell from the project root:
@@ -77,3 +87,11 @@ python3 distribution/doctor.py --skip-live-session
 The system only reuses the local logged-in browser session. It does not copy credentials and does not log in for the user. Keep WQ usage within the platform limits and review official rules before enabling unattended loops.
 
 The public bootstrap can generate a local candidate pool without any previous user's state. Live platform evidence, official checks, and submission decisions must come from the user's own account.
+
+## Automation Shape
+
+The public repo exposes three functional stages:
+
+- Candidate generation: `scripts/generate_task_pool.py` and the public profile/bootstrap generators.
+- Simulation/check loop: `scripts/run_wq_sync_loop.py`, usually started through `distribution/run_macos.sh --background` or `./start_factor_factory.sh start-continuous`.
+- Final submit: `scripts/submit_ready_alphas.py`, called by the loop only for rows already qualified in `submission-pool` and within the configured quota.

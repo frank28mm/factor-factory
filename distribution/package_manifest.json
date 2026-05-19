@@ -6,6 +6,7 @@
     "docs/factor-factory-public-case-studies.md",
     "docs/factor-factory-distribution-runbook-2026-05-18.md",
     "docs/wq-official-course-public-gate.md",
+    "start_factor_factory.sh",
     "requirements.txt"
   ],
   "include_dirs": [
